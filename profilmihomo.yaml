@@ -1,0 +1,240 @@
+#Clash.Meta(mihomo)
+JNTM: &JNTM
+    interval: 43200
+    health-check:
+        enable: true
+        url: 'https://www.gstatic.com/generate_204'
+        interval: 300
+        timeout: 5000
+        lazy: true
+        expected-status: 204
+
+# Proxy Providers
+proxy-providers:
+  订阅1:
+    url: 订阅链接
+    type: http
+    <<: *JNTM
+    path: './proxy_provider/providers_1.yaml'
+    proxy: 🌐代理
+    override:
+      additional-prefix: "备注"
+    filter: '^(?!.*(?i)(?:NEVER_MATCH)).*$'
+
+  订阅2:
+    url: 订阅链接
+    type: http
+    <<: *JNTM
+    path: './proxy_provider/providers_2.yaml'
+    proxy: 🌐代理
+    override:
+      additional-prefix: "备注"
+    filter: '^(?!.*(?i)(?:NEVER_MATCH)).*$'
+    
+  订阅3:
+    url: 订阅链接
+    type: http
+    <<: *JNTM
+    path: './proxy_provider/providers_3.yaml'
+    proxy: 🌐代理
+    override:
+      additional-prefix: "备注"
+    filter: '^(?!.*(?i)(?:NEVER_MATCH)).*$'
+    
+  LandNode:
+    type: file
+    <<: *JNTM
+    override:
+      additional-prefix: "🔗"
+      dialer-proxy: 中转
+    path: './proxy_provider/LandNode.yaml'
+
+  OtherNode:
+    type: file
+    <<: *JNTM
+    path: './proxy_provider/OtherNode.yaml'
+
+# Global Configuration
+mixed-port: 7890
+socks-port: 0
+port: 0
+redir-port: 0
+tproxy-port: 0
+mode: rule
+log-level: info
+ipv6: true
+find-process-mode: always
+authentication: []
+skip-auth-prefixes:
+  - 127.0.0.1/32
+  - ::1/128
+
+allow-lan: true
+lan-disallowed-ips: []
+bind-address: "*"
+lan-allowed-ips:
+  - 0.0.0.0/0
+  - ::/0
+
+### External Controller
+external-controller: 0.0.0.0:7891
+external-ui: ui
+secret: ""
+external-ui-url: 'https://github.com/Zephyruso/zashboard/releases/latest/download/dist.zip'
+external-controller-cors:
+  allow-origins:
+    - "*"
+  allow-private-network: true
+
+profile:
+  store-selected: true
+  store-fake-ip: true
+
+unified-delay: true
+tcp-concurrent: true
+global-client-fingerprint: chrome
+
+geodata-mode: true
+geo-auto-update: false
+geo-update-interval: 24
+geox-url:
+  geoip: 'https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat'
+  geosite: 'https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat'
+  mmdb: 'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country-lite.mmdb'
+  asn: 'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb'
+
+# Tunnel Configuration
+tun:
+  enable: true
+  stack: mixed
+  device: mihomo
+  auto-route: true
+  auto-redirect: true
+  auto-detect-interface: true
+  dns-hijack:
+    - any:53
+    - tcp://any:53
+  strict-route: true
+  mtu: 1500
+  route-exclude-address: []
+
+# DNS Configuration
+dns:
+  enable: true
+  listen: 0.0.0.0:53
+  cache-algorithm: arc
+  prefer-h3: false
+  ipv6: true
+  use-system-hosts: true
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  fake-ip-filter:
+    - "+.lan"
+    - "+.local"
+  respect-rules: true
+  default-nameserver:
+    - 1.1.1.1
+    - 8.8.8.8
+    - 2606:4700:4700::1111
+    - 2001:4860:4860::8888
+  nameserver:
+    - https://cloudflare-dns.com/dns-query
+    - https://dns.google/dns-query
+    - https://dns.alidns.com/dns-query
+    - https://doh.pub/dns-query
+  proxy-server-nameserver:
+    - https://cloudflare-dns.com/dns-query
+    - https://dns.google/dns-query
+    - https://dns.alidns.com/dns-query
+    - https://doh.pub/dns-query
+
+# Sniffer Configuration
+sniffer:
+  enable: true
+  sniff:
+    HTTP:
+      ports:
+        - 80
+        - 8080-8880
+    TLS:
+      ports:
+        - 443
+        - 8443
+    QUIC:
+      ports:
+        - 443
+        - 8443
+
+# Node Filters
+FilterHK: &FilterHK 
+  '^(?=.*((?i)(香港|🇭🇰)))(?!.*((?i)(🔗))).*$'
+
+FilterJP: &FilterJP 
+  '^(?=.*((?i)(日本|🇯🇵)))(?!.*((?i)(🔗))).*$'
+
+FilterKR: &FilterKR 
+  '^(?=.*((?i)(韩国|🇰🇷)))(?!.*((?i)(🔗))).*$'
+
+FilterSG: &FilterSG 
+  '^(?=.*((?i)(新加坡|🇸🇬)))(?!.*((?i)(🔗))).*$'
+
+FilterUS: &FilterUS 
+  '^(?=.*((?i)(美国|🇺🇸)))(?!.*((?i)(🔗))).*$'
+
+FilterUK: &FilterUK 
+  '^(?=.*((?i)(英国|🇬🇧)))(?!.*((?i)(🔗))).*$'
+
+FilterAU: &FilterAU 
+  '^(?=.*((?i)(澳大利亚|🇦🇺)))(?!.*((?i)(🔗))).*$'
+
+FilterFR: &FilterFR 
+  '^(?=.*((?i)(法国|🇫🇷)))(?!.*((?i)(🔗))).*$'
+
+FilterDE: &FilterDE 
+  '^(?=.*((?i)(德国|🇩🇪)))(?!.*((?i)(🔗))).*$'
+
+FilterTW: &FilterTW 
+  '^(?=.*((?i)(台湾|🇹🇼)))(?!.*((?i)(🔗))).*$'
+
+FilterOthers: &FilterOthers 
+  '^(?!.*((?i)(香港|🇭🇰|台湾|🇹🇼|日本|🇯🇵|新加坡|🇸🇬|美国|🇺🇸|德国|🇩🇪|英国|🇬🇧|韩国|🇰🇷|法国|🇫🇷|澳大利亚|🇦🇺)))(?!.*((?i)(🔗))).*$'
+
+FilterExperiment: &FilterExperiment 
+  '^(?=.*((?i)(实验)))(?!.*((?i)(🔗))).*$'
+
+FilterAll: &FilterAll 
+  '^(?!.*((?i)(🔗))).*$'
+
+# Proxy Group Templates
+Select: &Select
+  type: select
+  disable-udp: false
+  hidden: false
+  include-all: true
+
+Auto: &Auto
+  type: url-test
+  url: 'https://www.gstatic.com/generate_204'
+  expected-status: 204
+  interval: 300
+  timeout: 5000
+  lazy: true
+  tolerance: 50
+  disable-udp: false
+  hidden: false
+  include-all: true
+
+FallBack: &FallBack
+  type: fallback
+  url: 'https://www.gstatic.com/generate_204'
+  expected-status: 204
+  interval: 300
+  timeout: 5000
+  lazy: true
+  disable-udp: false
+  hidden: false
+  include-all: true
+
+Select_Proxies: &Select_Proxies
+  type: select
+  disable-udp
