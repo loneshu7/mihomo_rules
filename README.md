@@ -58,7 +58,7 @@
 
 1. **下载配置：** 下载本仓库的[YAML](https://github.com/loneshu7/mihomo_rules/blob/main/profile/mihomo.yaml)。
 2. **填写订阅：** 在 `proxy-providers` 部分，将 `url` 替换为你自己的机场订阅链接。
-   - *提示：配置中保留了多个点阅示例用于多机场订阅使用，不需要的可以删除或者注释掉
+   - *提示：配置中保留了多个订阅示例用于多机场订阅使用，不需要的可以删除或者注释掉
 3. **链式代理（可选）：** 如果你有自建落地节点，请在 `proxies` 头部填入你的节点信息，并确保 `dialer-proxy` 指向正确的策略组。
 4. **加载运行：** 将文件导入 Mihomo/Clash.Meta 客户端即可使用。
 
