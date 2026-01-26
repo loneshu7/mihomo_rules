@@ -31,16 +31,6 @@ proxy-providers:
       additional-prefix: "备注"
     filter: '^(?!.*(?i)(?:NEVER_MATCH)).*$'
     
-  订阅3:
-    url: 订阅链接
-    type: http
-    <<: *JNTM
-    path: './proxy_provider/providers_3.yaml'
-    proxy: 🌐代理
-    override:
-      additional-prefix: "备注"
-    filter: '^(?!.*(?i)(?:NEVER_MATCH)).*$'
-    
   LandNode:
     type: file
     <<: *JNTM
@@ -121,32 +111,32 @@ tun:
 # DNS Configuration
 dns:
   enable: true
-  listen: 0.0.0.0:53
   cache-algorithm: arc
-  prefer-h3: false
   ipv6: true
-  use-system-hosts: true
   enhanced-mode: fake-ip
-  fake-ip-range: 198.18.0.1/16
-  fake-ip-filter:
-    - "+.lan"
-    - "+.local"
-  respect-rules: true
-  default-nameserver:
-    - 1.1.1.1
-    - 8.8.8.8
-    - 2606:4700:4700::1111
-    - 2001:4860:4860::8888
   nameserver:
-    - https://cloudflare-dns.com/dns-query
-    - https://dns.google/dns-query
-    - https://dns.alidns.com/dns-query
-    - https://doh.pub/dns-query
-  proxy-server-nameserver:
-    - https://cloudflare-dns.com/dns-query
-    - https://dns.google/dns-query
-    - https://dns.alidns.com/dns-query
-    - https://doh.pub/dns-query
+    - quic://223.5.5.5
+
+  # 常见“国外站点”强制走国外 DNS（避免解析到国内/污染）
+  nameserver-policy:
+    "geosite:geolocation-!cn":
+      - https://1.1.1.1/dns-query
+      - https://8.8.8.8/dns-query
+    "geosite:cn":
+      - https://dns.alidns.com/dns-query
+      - https://doh.pub/dns-query
+    "geosite:private":
+      - system
+
+  fake-ip-range: 198.18.0.1/15
+  fake-ip-filter:
+    # 内网与本机
+    - DOMAIN,localhost
+    - DOMAIN-SUFFIX,local
+    - DOMAIN-SUFFIX,lan
+    # Windows 连通性检测
+    - DOMAIN-SUFFIX,msftncsi.com
+    - DOMAIN-SUFFIX,msftconnecttest.com
 
 # Sniffer Configuration
 sniffer:
@@ -167,43 +157,43 @@ sniffer:
 
 # Node Filters
 FilterHK: &FilterHK 
-  '^(?=.*((?i)(香港|🇭🇰)))(?!.*((?i)(🔗))).*$'
+  '^(?=.*((?i)(香港|🇭🇰)))(?!.*((?i)(🔗|实验))).*$'
 
 FilterJP: &FilterJP 
-  '^(?=.*((?i)(日本|🇯🇵)))(?!.*((?i)(🔗))).*$'
+  '^(?=.*((?i)(日本|🇯🇵)))(?!.*((?i)(🔗|实验))).*$'
 
 FilterKR: &FilterKR 
-  '^(?=.*((?i)(韩国|🇰🇷)))(?!.*((?i)(🔗))).*$'
+  '^(?=.*((?i)(韩国|🇰🇷)))(?!.*((?i)(🔗|实验))).*$'
 
 FilterSG: &FilterSG 
-  '^(?=.*((?i)(新加坡|🇸🇬)))(?!.*((?i)(🔗))).*$'
+  '^(?=.*((?i)(新加坡|🇸🇬)))(?!.*((?i)(🔗|实验))).*$'
 
 FilterUS: &FilterUS 
-  '^(?=.*((?i)(美国|🇺🇸)))(?!.*((?i)(🔗))).*$'
+  '^(?=.*((?i)(美国|🇺🇸)))(?!.*((?i)(🔗|实验))).*$'
 
 FilterUK: &FilterUK 
-  '^(?=.*((?i)(英国|🇬🇧)))(?!.*((?i)(🔗))).*$'
+  '^(?=.*((?i)(英国|🇬🇧)))(?!.*((?i)(🔗|实验))).*$'
 
 FilterAU: &FilterAU 
-  '^(?=.*((?i)(澳大利亚|🇦🇺)))(?!.*((?i)(🔗))).*$'
+  '^(?=.*((?i)(澳大利亚|🇦🇺)))(?!.*((?i)(🔗|实验))).*$'
 
 FilterFR: &FilterFR 
-  '^(?=.*((?i)(法国|🇫🇷)))(?!.*((?i)(🔗))).*$'
+  '^(?=.*((?i)(法国|🇫🇷)))(?!.*((?i)(🔗|实验))).*$'
 
 FilterDE: &FilterDE 
-  '^(?=.*((?i)(德国|🇩🇪)))(?!.*((?i)(🔗))).*$'
+  '^(?=.*((?i)(德国|🇩🇪)))(?!.*((?i)(🔗|实验))).*$'
 
 FilterTW: &FilterTW 
-  '^(?=.*((?i)(台湾|🇹🇼)))(?!.*((?i)(🔗))).*$'
+  '^(?=.*((?i)(台湾|🇹🇼)))(?!.*((?i)(🔗|实验))).*$'
 
 FilterOthers: &FilterOthers 
-  '^(?!.*((?i)(香港|🇭🇰|台湾|🇹🇼|日本|🇯🇵|新加坡|🇸🇬|美国|🇺🇸|德国|🇩🇪|英国|🇬🇧|韩国|🇰🇷|法国|🇫🇷|澳大利亚|🇦🇺)))(?!.*((?i)(🔗))).*$'
+  '^(?!.*((?i)(香港|🇭🇰|台湾|🇹🇼|日本|🇯🇵|新加坡|🇸🇬|美国|🇺🇸|德国|🇩🇪|英国|🇬🇧|韩国|🇰🇷|法国|🇫🇷|澳大利亚|🇦🇺)))(?!.*((?i)(🔗|实验))).*$'
 
 FilterExperiment: &FilterExperiment 
   '^(?=.*((?i)(实验)))(?!.*((?i)(🔗))).*$'
 
 FilterAll: &FilterAll 
-  '^(?!.*((?i)(🔗))).*$'
+  '^(?!.*((?i)(🔗|实验))).*$'
 
 # Proxy Group Templates
 Select: &Select
@@ -841,14 +831,6 @@ rule-providers:
 rules:
   - RULE-SET,advertising,⛔阻断  # 拦截广告
   - RULE-SET,privacy,⛔阻断      # 拦截隐私追踪
-  - DOMAIN-SUFFIX,younoyes.com,Emby
-  - PROCESS-NAME,com.jingdong.app.mall,DIRECT
-  - PROCESS-NAME,com.qidian.QDReader,DIRECT
-  - DOMAIN-SUFFIX,youpin898.com,DIRECT
-  - DOMAIN-SUFFIX,youpinimg.com,DIRECT
-  - DOMAIN-SUFFIX,jianguoyun.com,🌐代理
-  
-  
   - RULE-SET,lan,DIRECT
 
   # Steam
@@ -875,4 +857,6 @@ rules:
   - RULE-SET,microsoft,Microsoft
   - RULE-SET,cloudflare,Cloudflare
   - RULE-SET,chinadirect,DIRECT
+  - GEOSITE,cn,DIRECT
+  - GEOIP,CN,DIRECT
   - MATCH,🌐代理
