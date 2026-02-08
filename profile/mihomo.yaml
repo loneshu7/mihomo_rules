@@ -642,6 +642,14 @@ rule-providers:
     proxy: 🌐代理
     url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/Gemini/Gemini.yaml'
     path: './rule_set/gemini.yaml'
+
+  googlefcm:
+    type: http
+    behavior: classical
+    interval: 43200
+    proxy: 🌐代理
+    url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/GoogleFCM/GoogleFCM.yaml'
+    path: './rule_set/googlefcm.yaml'
     
   bilibili:
     type: http
@@ -833,7 +841,7 @@ rules:
   - RULE-SET,privacy,⛔阻断      # 拦截隐私追踪
   - RULE-SET,lan,DIRECT
 
-  # Steam
+  - RULE-SET,googlefcm,🇺🇸故障转移
   - RULE-SET,steam_cn,DIRECT
   - RULE-SET,steam,Steam
   - RULE-SET,epic,Epic
