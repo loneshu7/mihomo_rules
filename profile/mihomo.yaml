@@ -111,32 +111,52 @@ tun:
 # DNS Configuration
 dns:
   enable: true
-  cache-algorithm: arc
+  prefer-h3: false
   ipv6: true
-  enhanced-mode: fake-ip
+  ipv6-timeout: 100
+  use-hosts: true
+  use-system-hosts: true
+  respect-rules: false
   nameserver:
-    - quic://223.5.5.5
-
-  # 常见“国外站点”强制走国外 DNS（避免解析到国内/污染）
-  nameserver-policy:
-    "geosite:geolocation-!cn":
-      - https://1.1.1.1/dns-query
-      - https://8.8.8.8/dns-query
-    "geosite:cn":
-      - https://dns.alidns.com/dns-query
-      - https://doh.pub/dns-query
-    "geosite:private":
-      - system
-
-  fake-ip-range: 198.18.0.1/15
+    - "quic://223.5.5.5"
+  fallback: null
+  fallback-filter:
+    geoip: true
+    geoip-code: "CN"
+    ipcidr: []
+    domain: null
+    geosite: []
+  listen: ""
+  enhanced-mode: "fake-ip"
+  fake-ip-range: "198.18.0.1/15"
+  fake-ip-range6: ""
   fake-ip-filter:
-    # 内网与本机
-    - DOMAIN,localhost
-    - DOMAIN-SUFFIX,local
-    - DOMAIN-SUFFIX,lan
-    # Windows 连通性检测
-    - DOMAIN-SUFFIX,msftncsi.com
-    - DOMAIN-SUFFIX,msftconnecttest.com
+    - "DOMAIN,localhost"
+    - "DOMAIN-SUFFIX,local"
+    - "DOMAIN-SUFFIX,lan"
+    - "DOMAIN-SUFFIX,msftncsi.com"
+    - "DOMAIN-SUFFIX,msftconnecttest.com"
+  fake-ip-filter-mode: "blacklist"
+  fake-ip-ttl: 1
+  default-nameserver:
+    - "114.114.114.114"
+    - "223.5.5.5"
+    - "8.8.8.8"
+    - "1.0.0.1"
+  cache-algorithm: "arc"
+  cache-max-size: 0
+  nameserver-policy:
+    geosite:geolocation-!cn:
+      - "https://1.1.1.1/dns-query"
+      - "https://8.8.8.8/dns-query"
+    geosite:cn:
+      - "https://dns.alidns.com/dns-query"
+      - "https://doh.pub/dns-query"
+    geosite:private:
+      - "system"
+  proxy-server-nameserver: null
+  direct-nameserver: null
+  direct-nameserver-follow-policy: false
 
 # Sniffer Configuration
 sniffer:
