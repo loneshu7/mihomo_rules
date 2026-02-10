@@ -111,53 +111,42 @@ tun:
 # DNS Configuration
 dns:
   enable: true
+  listen: "0.0.0.0:1053"
   prefer-h3: false
-  ipv6: true
-  ipv6-timeout: 100
   use-hosts: true
   use-system-hosts: true
   respect-rules: false
+  ipv6: true
+  default-nameserver:
+    - "223.5.5.5"
+  enhanced-mode: "fake-ip"
+  fake-ip-range: "198.18.0.1/16"
+  fake-ip-filter:
+    - "*.lan"
+    - "localhost.ptlogin2.qq.com"
+  nameserver-policy:
+    www.baidu.com: "114.114.114.114"
+    +.internal.crop.com: "10.0.0.1"
+    geosite:cn: "https://doh.pub/dns-query"
   nameserver:
-    - "quic://223.5.5.5"
-  fallback: null
+    - "https://doh.pub/dns-query"
+    - "https://dns.alidns.com/dns-query"
+  fallback:
+    - "tls://8.8.4.4"
+    - "tls://1.1.1.1"
+  proxy-server-nameserver:
+    - "https://doh.pub/dns-query"
   fallback-filter:
     geoip: true
     geoip-code: "CN"
-    ipcidr: []
-    domain: null
-    geosite: []
-  listen: ""
-  enhanced-mode: "fake-ip"
-  fake-ip-range: "198.18.0.1/15"
-  fake-ip-range6: ""
-  fake-ip-filter:
-    - "DOMAIN,localhost"
-    - "DOMAIN-SUFFIX,local"
-    - "DOMAIN-SUFFIX,lan"
-    - "DOMAIN-SUFFIX,msftncsi.com"
-    - "DOMAIN-SUFFIX,msftconnecttest.com"
-  fake-ip-filter-mode: "blacklist"
-  fake-ip-ttl: 1
-  default-nameserver:
-    - "114.114.114.114"
-    - "223.5.5.5"
-    - "8.8.8.8"
-    - "1.0.0.1"
-  cache-algorithm: "arc"
-  cache-max-size: 0
-  nameserver-policy:
-    geosite:geolocation-!cn:
-      - "https://1.1.1.1/dns-query"
-      - "https://8.8.8.8/dns-query"
-    geosite:cn:
-      - "https://dns.alidns.com/dns-query"
-      - "https://doh.pub/dns-query"
-    geosite:private:
-      - "system"
-  proxy-server-nameserver: null
-  direct-nameserver: null
-  direct-nameserver-follow-policy: false
-
+    geosite:
+      - "gfw"
+    ipcidr:
+      - "240.0.0.0/4"
+    domain:
+      - "+.google.com"
+      - "+.facebook.com"
+      - "+.youtube.com"
 # Sniffer Configuration
 sniffer:
   enable: true
