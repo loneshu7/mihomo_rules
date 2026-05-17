@@ -851,7 +851,7 @@ rules:
   - DOMAIN,api-huacloud.net,DIRECT
   - RULE-SET,advertising,⛔阻断  # 拦截广告
   - RULE-SET,privacy,⛔阻断      # 拦截隐私追踪
-  - RULE-SET,googlefcm,🇺🇸手动选择
+  - RULE-SET,googlefcm,OpenAI
   - DOMAIN,cdn.usefathom.com,OpenAI
   - DOMAIN-SUFFIX,anthropic.com,OpenAI
   - DOMAIN-SUFFIX,claude.ai,OpenAI
@@ -877,7 +877,7 @@ rules:
   - DOMAIN-SUFFIX,jianguoyun.com,Proxies
   - DOMAIN-SUFFIX,linux.do,OpenAI
   - RULE-SET,lan,DIRECT
-  - PROCESS-NAME,com.honjow.fehviewer,🇺🇸自动选择
+  - PROCESS-NAME,com.honjow.fehviewer,OpenAI
   - IP-CIDR,149.154.160.0/20,Emby
 
   - RULE-SET,steam_cn,DIRECT
@@ -896,7 +896,7 @@ rules:
   - RULE-SET,youtube,YouTube
   - RULE-SET,netflix,Netflix
   - RULE-SET,google,Google
-  - RULE-SET,binance,🇺🇸自动选择
+  - RULE-SET,binance,OpenAI
   - RULE-SET,apple,Apple
   - RULE-SET,microsoft,Microsoft
   - RULE-SET,cloudflare,Cloudflare
