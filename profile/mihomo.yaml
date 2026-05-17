@@ -17,7 +17,7 @@ proxy-providers:
     type: http
     <<: *ishu
     path: './proxy_provider/providers_1.yaml'
-    proxy: 🌐代理
+    proxy: Proxies
     override:
       additional-prefix: "备注"
     filter: '^(?!.*(?i)(?:NEVER_MATCH)).*$'
@@ -27,7 +27,7 @@ proxy-providers:
     type: http
     <<: *ishu
     path: './proxy_provider/providers_2.yaml'
-    proxy: 🌐代理
+    proxy: Proxies
     override:
       additional-prefix: "备注"
     filter: '^(?!.*(?i)(?:NEVER_MATCH)).*$'
