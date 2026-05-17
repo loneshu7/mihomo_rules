@@ -1,5 +1,5 @@
 #Clash.Meta(mihomo)
-JNTM: &JNTM
+ishu: &ishu
     interval: 43200
     health-check:
         enable: true
@@ -9,12 +9,13 @@ JNTM: &JNTM
         lazy: true
         expected-status: 204
 
+
 # Proxy Providers
 proxy-providers:
   订阅1:
     url: 订阅链接
     type: http
-    <<: *JNTM
+    <<: *ishu
     path: './proxy_provider/providers_1.yaml'
     proxy: 🌐代理
     override:
@@ -24,7 +25,7 @@ proxy-providers:
   订阅2:
     url: 订阅链接
     type: http
-    <<: *JNTM
+    <<: *ishu
     path: './proxy_provider/providers_2.yaml'
     proxy: 🌐代理
     override:
@@ -33,7 +34,7 @@ proxy-providers:
     
   LandNode:
     type: file
-    <<: *JNTM
+    <<: *ishu
     override:
       additional-prefix: "🔗"
       dialer-proxy: 中转
@@ -41,7 +42,7 @@ proxy-providers:
 
   OtherNode:
     type: file
-    <<: *JNTM
+    <<: *ishu
     path: './proxy_provider/OtherNode.yaml'
 
 # Global Configuration
@@ -52,7 +53,7 @@ redir-port: 0
 tproxy-port: 0
 mode: rule
 log-level: info
-ipv6: true
+ipv6: false
 find-process-mode: always
 authentication: []
 skip-auth-prefixes:
@@ -96,17 +97,20 @@ geox-url:
 # Tunnel Configuration
 tun:
   enable: true
-  stack: mixed
   device: mihomo
-  auto-route: true
-  auto-redirect: true
-  auto-detect-interface: true
+  stack: system
   dns-hijack:
-    - any:53
-    - tcp://any:53
-  strict-route: true
+    - "any:53"
+  auto-route: true
+  auto-detect-interface: true
   mtu: 1500
-  route-exclude-address: []
+  inet6-address:
+    - "fdfe:dcba:9876::1/126"
+  auto-redirect: true
+  strict-route: true
+  endpoint-independent-nat: true
+  udp-timeout: 300
+
 
 # DNS Configuration
 dns:
@@ -150,19 +154,22 @@ dns:
 # Sniffer Configuration
 sniffer:
   enable: true
+  parse-pure-ip: true
   sniff:
-    HTTP:
-      ports:
-        - 80
-        - 8080-8880
-    TLS:
-      ports:
-        - 443
-        - 8443
-    QUIC:
-      ports:
-        - 443
-        - 8443
+    tls:
+      ports: [443, 8443]
+    http:
+      ports: [80, 8080-8888]
+      priority: 1
+    quic:
+      ports: [443, 8443]
+  force-domain:
+    - "+"
+  skip-domain:
+    - "Mijia Cloud"
+    - "dlg.io.mi.com"
+    - "+.apple.com"
+
 
 # Node Filters
 FilterHK: &FilterHK 
@@ -239,7 +246,7 @@ Select_Proxies: &Select_Proxies
   disable-udp: false
   hidden: false
   include-all: true
-  proxies: [🌐代理, 🧪实验低倍率, 🔗链式代理, DIRECT, ⛔阻断, 
+  proxies: [Proxies, 🧪实验低倍率, 🔗链式代理, DIRECT, ⛔阻断, 
             🟨手动选择, 🟦手动选择, 
             🟢故障转移, 🟣故障转移, 
             🔶自动选择, 🔷自动选择, 
@@ -263,7 +270,7 @@ Select_Proxies: &Select_Proxies
 # Proxy Groups
 proxy-groups:
   ### MAIN
-  - name: 🌐代理
+  - name: Proxies
     type: select
     include-all: true
     proxies: [🟢故障转移, 🟣故障转移, 
@@ -380,12 +387,7 @@ proxy-groups:
   - name: Emby
     <<: *Select_Proxies
     filter: *FilterAll
-    icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Emby.png
-
-  - name: Streaming
-    <<: *Select_Proxies
-    filter: *FilterAll
-    icon: 'https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Streaming.png'
+    icon: 'https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Emby.png'
 
   - name: Cloudflare
     <<: *Select_Proxies
@@ -630,7 +632,7 @@ rule-providers:
     type: http
     behavior: classical
     interval: 43200
-    proxy: 🌐代理
+    proxy: Proxies
     url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/Lan/Lan.yaml'
     path: './rule_set/lan.yaml'
 
@@ -639,7 +641,7 @@ rule-providers:
     type: http
     behavior: classical
     interval: 43200
-    proxy: 🌐代理
+    proxy: Proxies
     url: 'https://cdn.jsdelivr.net/gh/Accademia/Additional_Rule_For_Clash@master/GeositeCN/GeositeCN.yaml'
     path: './rule_set/chinadirect.yaml'
   
@@ -648,15 +650,15 @@ rule-providers:
     type: http
     behavior: classical
     interval: 43200
-    proxy: 🌐代理
+    proxy: Proxies
     url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/Gemini/Gemini.yaml'
     path: './rule_set/gemini.yaml'
-
+    
   googlefcm:
     type: http
     behavior: classical
     interval: 43200
-    proxy: 🌐代理
+    proxy: Proxies
     url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/GoogleFCM/GoogleFCM.yaml'
     path: './rule_set/googlefcm.yaml'
     
@@ -664,7 +666,7 @@ rule-providers:
     type: http
     behavior: classical
     interval: 43200
-    proxy: 🌐代理
+    proxy: Proxies
     url: 'https://github.com/blackmatrix7/ios_rule_script/raw/refs/heads/master/rule/Clash/BiliBili/BiliBili.yaml'
     path: './rule_set/bilibili.yaml'
 
@@ -672,7 +674,7 @@ rule-providers:
     type: http
     behavior: classical
     interval: 43200
-    proxy: 🌐代理
+    proxy: Proxies
     url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/PikPak/PikPak.yaml'
     path: './rule_set/pikpak.yaml'
 
@@ -680,7 +682,7 @@ rule-providers:
     type: http
     behavior: classical
     interval: 43200
-    proxy: 🌐代理
+    proxy: Proxies
     url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/GlobalMedia/GlobalMedia.yaml'
     path: './rule_set/stream.yaml'
 
@@ -688,7 +690,7 @@ rule-providers:
     type: http
     behavior: classical
     interval: 43200
-    proxy: 🌐代理
+    proxy: Proxies
     url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/Telegram/Telegram.yaml'
     path: './rule_set/telegram.yaml'
 
@@ -696,7 +698,7 @@ rule-providers:
     type: http
     behavior: classical
     interval: 43200
-    proxy: 🌐代理
+    proxy: Proxies
     url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/Apple/Apple.yaml'
     path: './rule_set/apple.yaml'
 
@@ -704,7 +706,7 @@ rule-providers:
     type: http
     behavior: classical
     interval: 43200
-    proxy: 🌐代理
+    proxy: Proxies
     url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/Microsoft/Microsoft.yaml'
     path: './rule_set/microsoft.yaml'
 
@@ -712,7 +714,7 @@ rule-providers:
     type: http
     behavior: classical
     interval: 43200
-    proxy: 🌐代理
+    proxy: Proxies
     url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/Steam/Steam.yaml'
     path: './rule_set/steam.yaml'
 
@@ -720,7 +722,7 @@ rule-providers:
     type: http
     behavior: classical
     interval: 43200
-    proxy: 🌐代理
+    proxy: Proxies
     url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/SteamCN/SteamCN.yaml'
     path: './rule_set/steam_cn.yaml'
 
@@ -728,7 +730,7 @@ rule-providers:
     type: http
     behavior: classical
     interval: 43200
-    proxy: 🌐代理
+    proxy: Proxies
     url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/Discord/Discord.yaml'
     path: './rule_set/discord.yaml'
 
@@ -736,7 +738,7 @@ rule-providers:
     type: http
     behavior: classical
     interval: 43200
-    proxy: 🌐代理
+    proxy: Proxies
     url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/Spotify/Spotify.yaml'
     path: './rule_set/spotify.yaml'
 
@@ -744,7 +746,7 @@ rule-providers:
     type: http
     behavior: classical
     interval: 43200
-    proxy: 🌐代理
+    proxy: Proxies
     url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/TikTok/TikTok.yaml'
     path: './rule_set/tiktok.yaml'
 
@@ -752,7 +754,7 @@ rule-providers:
     type: http
     behavior: classical
     interval: 43200
-    proxy: 🌐代理
+    proxy: Proxies
     url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/OpenAI/OpenAI.yaml'
     path: './rule_set/openai.yaml'
 
@@ -760,7 +762,7 @@ rule-providers:
     type: http
     behavior: classical
     interval: 43200
-    proxy: 🌐代理
+    proxy: Proxies
     url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/Epic/Epic.yaml'
     path: './rule_set/epic.yaml'
 
@@ -768,7 +770,7 @@ rule-providers:
     type: http
     behavior: classical
     interval: 43200
-    proxy: 🌐代理
+    proxy: Proxies
     url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/Google/Google.yaml'
     path: './rule_set/google.yaml'
 
@@ -776,7 +778,7 @@ rule-providers:
     type: http
     behavior: classical
     interval: 43200
-    proxy: 🌐代理
+    proxy: Proxies
     url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/GitHub/GitHub.yaml'
     path: './rule_set/github.yaml'
 
@@ -784,7 +786,7 @@ rule-providers:
     type: http
     behavior: classical
     interval: 43200
-    proxy: 🌐代理
+    proxy: Proxies
     url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/YouTube/YouTube.yaml'
     path: './rule_set/youtube.yaml'
 
@@ -792,7 +794,7 @@ rule-providers:
     type: http
     behavior: classical
     interval: 43200
-    proxy: 🌐代理
+    proxy: Proxies
     url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/Twitter/Twitter.yaml'
     path: './rule_set/twitter.yaml'
 
@@ -800,7 +802,7 @@ rule-providers:
     type: http
     behavior: classical
     interval: 43200
-    proxy: 🌐代理
+    proxy: Proxies
     url: 'https://raw.githubusercontent.com/dler-io/Rules/refs/heads/main/Egern/Provider/Media/Pornhub.yaml'
     path: './rule_set/pornhub.yaml'
 
@@ -808,7 +810,7 @@ rule-providers:
     type: http
     behavior: classical
     interval: 43200
-    proxy: 🌐代理
+    proxy: Proxies
     url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/Cloudflare/Cloudflare.yaml'
     path: './rule_set/cloudflare.yaml'
 
@@ -816,7 +818,7 @@ rule-providers:
     type: http
     behavior: classical
     interval: 43200
-    proxy: 🌐代理
+    proxy: Proxies
     url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/Netflix/Netflix.yaml'
     path: './rule_set/netflix.yaml'
     
@@ -824,7 +826,7 @@ rule-providers:
     type: http
     behavior: classical
     interval: 43200
-    proxy: 🌐代理
+    proxy: Proxies
     url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/Advertising/Advertising.yaml'
     path: './rule_set/advertising.yaml'
 
@@ -832,7 +834,7 @@ rule-providers:
     type: http
     behavior: classical
     interval: 43200
-    proxy: 🌐代理
+    proxy: Proxies
     url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/Privacy/Privacy.yaml'
     path: './rule_set/privacy.yaml'
 
@@ -840,21 +842,47 @@ rule-providers:
     type: http
     behavior: classical
     interval: 43200
-    proxy: 🌐代理
+    proxy: Proxies
     url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/Binance/Binance.yaml'
     path: './rule_set/binance.yaml'
 
 # Rules
 rules:
+  - DOMAIN,api-huacloud.net,DIRECT
   - RULE-SET,advertising,⛔阻断  # 拦截广告
   - RULE-SET,privacy,⛔阻断      # 拦截隐私追踪
+  - RULE-SET,googlefcm,🇺🇸手动选择
+  - DOMAIN,cdn.usefathom.com,OpenAI
+  - DOMAIN-SUFFIX,anthropic.com,OpenAI
+  - DOMAIN-SUFFIX,claude.ai,OpenAI
+  - DOMAIN-SUFFIX,okemby.org,Emby
+  - DOMAIN,cdn.lilyemby.com,DIRECT
+  - DOMAIN,free.lilyemby.com,Emby
+  - DOMAIN,cfstream.lilyya.top,Emby
+  - DOMAIN,tx.lilyemby.com,Emby
+  - DOMAIN,origin.lilyemby.cc,Emby
+  - DOMAIN-SUFFIX,twimg.com,Emby
+  - DOMAIN,aliyun.lilyemby.com,Emby
+  - DOMAIN-SUFFIX,83787.de,Emby
+  - DOMAIN,stream-1.miraiemby.com,Emby
+  - DOMAIN,stream-3.miraiemby.com,DIRECT
+  - DOMAIN,stream-1.jiedaibao.gs,DIRECT
+  - IP-CIDR,154.219.102.206/32,DIRECT
+  - IP-CIDR,103.39.79.254/32,DIRECT
+  - IP-CIDR,43.133.196.53/32,DIRECT
+  - DOMAIN-SUFFIX,younoyes.com,Emby
+  - PROCESS-NAME,com.qidian.QDReader,DIRECT
+  - DOMAIN-SUFFIX,youpin898.com,DIRECT
+  - DOMAIN-SUFFIX,youpinimg.com,DIRECT
+  - DOMAIN-SUFFIX,jianguoyun.com,Proxies
+  - DOMAIN-SUFFIX,linux.do,OpenAI
   - RULE-SET,lan,DIRECT
+  - PROCESS-NAME,com.honjow.fehviewer,🇺🇸自动选择
+  - IP-CIDR,149.154.160.0/20,Emby
 
-  - RULE-SET,googlefcm,🇺🇸故障转移
   - RULE-SET,steam_cn,DIRECT
   - RULE-SET,steam,Steam
   - RULE-SET,epic,Epic
-  - RULE-SET,telegram,Telegram
   - RULE-SET,twitter,Twitter
   - RULE-SET,spotify,Spotify
   - RULE-SET,github,GitHub
@@ -862,12 +890,11 @@ rules:
   - RULE-SET,discord,Discord
   - RULE-SET,tiktok,Tiktok
   - RULE-SET,pornhub,Pornhub
-  - RULE-SET,gemini,Google
+  - RULE-SET,gemini,OpenAI
   - RULE-SET,openai,OpenAI
   - RULE-SET,bilibili,Bilibili
   - RULE-SET,youtube,YouTube
   - RULE-SET,netflix,Netflix
-  - RULE-SET,stream,Streaming
   - RULE-SET,google,Google
   - RULE-SET,binance,🇺🇸自动选择
   - RULE-SET,apple,Apple
@@ -876,4 +903,7 @@ rules:
   - RULE-SET,chinadirect,DIRECT
   - GEOSITE,cn,DIRECT
   - GEOIP,CN,DIRECT
-  - MATCH,🌐代理
+  - RULE-SET,telegram,Telegram
+  - PROCESS-NAME,com.exteragram.messenger,Telegram
+  - PROCESS-NAME,com.radolyn.ayugram,Telegram
+  - MATCH,Proxies
