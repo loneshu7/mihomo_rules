@@ -330,26 +330,8 @@ proxy-groups:
 
   ### Dialer Proxy
   - name: 中转
-    <<: *Select
-    filter: *FilterAll
-    proxies: [🟢故障转移, 🟣故障转移, 
-              🔶自动选择, 🔷自动选择, 
-              🟨手动选择, 🟦手动选择,
-              🇭🇰手动选择, 🇸🇬手动选择, 
-              🇺🇸手动选择, 🇹🇼手动选择,
-              🇯🇵手动选择, 🇰🇷手动选择, 
-              🇦🇺手动选择, 🇬🇧手动选择, 
-              🇫🇷手动选择, 🇩🇪手动选择, 
-              🇭🇰自动选择, 🇭🇰故障转移, 
-              🇸🇬自动选择, 🇸🇬故障转移, 
-              🇺🇸自动选择, 🇺🇸故障转移,  
-              🇹🇼自动选择, 🇹🇼故障转移, 
-              🇯🇵自动选择, 🇯🇵故障转移, 
-              🇰🇷自动选择, 🇰🇷故障转移, 
-              🇦🇺自动选择, 🇦🇺故障转移,               
-              🇬🇧自动选择, 🇬🇧故障转移, 
-              🇫🇷自动选择, 🇫🇷故障转移, 
-              🇩🇪自动选择, 🇩🇪故障转移]
+    <<: *Select          # include-all: true
+    filter: *FilterAll   # 排除 🔗 落地，防自套
     icon: 'https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Server.png'
 
   - name: 落地
