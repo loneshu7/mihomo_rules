@@ -12,24 +12,24 @@ ishu: &ishu
 
 # Proxy Providers
 proxy-providers:
-  订阅1:
-    url: 订阅链接
+  机场1:
+    url: "在此填入第1个机场的订阅链接(Clash/mihomo 格式)"
     type: http
     <<: *ishu
     path: './proxy_provider/providers_1.yaml'
     proxy: Proxies
     override:
-      additional-prefix: "备注"
+      additional-prefix: "机场标识"
     filter: '^(?!.*(?i)(?:NEVER_MATCH)).*$'
 
-  订阅2:
-    url: 订阅链接
+  机场2:
+    url: "在此填入第2个机场的订阅链接(Clash/mihomo 格式)"
     type: http
     <<: *ishu
     path: './proxy_provider/providers_2.yaml'
     proxy: Proxies
     override:
-      additional-prefix: "备注"
+      additional-prefix: "机场标识"
     filter: '^(?!.*(?i)(?:NEVER_MATCH)).*$'
     
   LandNode:
@@ -117,40 +117,31 @@ dns:
   enable: true
   listen: "0.0.0.0:1053"
   prefer-h3: false
-  use-hosts: true
   use-system-hosts: true
-  respect-rules: false
-  ipv6: true
-  default-nameserver:
-    - "223.5.5.5"
+  ipv6: false
+  cache-algorithm: arc
+  respect-rules: true
   enhanced-mode: "fake-ip"
   fake-ip-range: "198.18.0.1/16"
   fake-ip-filter:
     - "*.lan"
+    - "+.local"
     - "localhost.ptlogin2.qq.com"
-  nameserver-policy:
-    www.baidu.com: "114.114.114.114"
-    +.internal.crop.com: "10.0.0.1"
-    geosite:cn: "https://doh.pub/dns-query"
+    - "geosite:private"
+  default-nameserver:
+    - "223.5.5.5"
+    - "119.29.29.29"
   nameserver:
-    - "https://doh.pub/dns-query"
-    - "https://dns.alidns.com/dns-query"
-  fallback:
-    - "tls://8.8.4.4"
-    - "tls://1.1.1.1"
+    - "https://cloudflare-dns.com/dns-query"
+    - "https://dns.google/dns-query"
   proxy-server-nameserver:
     - "https://doh.pub/dns-query"
-  fallback-filter:
-    geoip: true
-    geoip-code: "CN"
-    geosite:
-      - "gfw"
-    ipcidr:
-      - "240.0.0.0/4"
-    domain:
-      - "+.google.com"
-      - "+.facebook.com"
-      - "+.youtube.com"
+    - "https://dns.alidns.com/dns-query"
+  nameserver-policy:
+    "geosite:cn,private":
+      - "https://doh.pub/dns-query"
+      - "https://dns.alidns.com/dns-query"
+    "+.internal.crop.com": "10.0.0.1"
 # Sniffer Configuration
 sniffer:
   enable: true
@@ -255,16 +246,16 @@ Select_Proxies: &Select_Proxies
             🇯🇵手动选择, 🇰🇷手动选择, 
             🇦🇺手动选择, 🇬🇧手动选择, 
             🇫🇷手动选择, 🇩🇪手动选择, 
-            🇭🇰自动选择, 🇭🇰故障转移, 
-            🇸🇬自动选择, 🇸🇬故障转移, 
-            🇺🇸自动选择, 🇺🇸故障转移,  
-            🇹🇼自动选择, 🇹🇼故障转移, 
-            🇯🇵自动选择, 🇯🇵故障转移, 
-            🇰🇷自动选择, 🇰🇷故障转移, 
-            🇦🇺自动选择, 🇦🇺故障转移,               
-            🇬🇧自动选择, 🇬🇧故障转移, 
-            🇫🇷自动选择, 🇫🇷故障转移, 
-            🇩🇪自动选择, 🇩🇪故障转移, 
+            🇭🇰自动选择, 🇸🇬自动选择, 
+            🇺🇸自动选择, 🇹🇼自动选择, 
+            🇯🇵自动选择, 🇰🇷自动选择, 
+            🇦🇺自动选择, 🇬🇧自动选择, 
+            🇫🇷自动选择, 🇩🇪自动选择, 
+            🇭🇰故障转移, 🇸🇬故障转移, 
+            🇺🇸故障转移, 🇹🇼故障转移, 
+            🇯🇵故障转移, 🇰🇷故障转移, 
+            🇦🇺故障转移, 🇬🇧故障转移, 
+            🇫🇷故障转移, 🇩🇪故障转移, 
             ↩️绕过]
 
 # Proxy Groups
@@ -328,10 +319,10 @@ proxy-groups:
     filter: *FilterAll
     icon: 'https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Available.png'
 
-  ### Dialer Proxy
+  ### Dialer Proxy 
   - name: 中转
-    <<: *Select          # include-all: true
-    filter: *FilterAll   # 排除 🔗 落地，防自套
+    <<: *Select
+    filter: *FilterAll
     icon: 'https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Server.png'
 
   - name: 落地
@@ -619,13 +610,23 @@ rule-providers:
     path: './rule_set/lan.yaml'
 
   # ChinaDIRECT
-  chinadirect:
+  cnsite:
     type: http
-    behavior: classical
+    behavior: domain
+    format: mrs
     interval: 43200
     proxy: Proxies
-    url: 'https://cdn.jsdelivr.net/gh/Accademia/Additional_Rule_For_Clash@master/GeositeCN/GeositeCN.yaml'
-    path: './rule_set/chinadirect.yaml'
+    url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/cn.mrs'
+    path: './rule_set/cnsite.mrs'
+
+  cnip:
+    type: http
+    behavior: ipcidr
+    format: mrs
+    interval: 43200
+    proxy: Proxies
+    url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/cn.mrs'
+    path: './rule_set/cnip.mrs'
   
   # Other
   gemini:
@@ -830,36 +831,19 @@ rule-providers:
 
 # Rules
 rules:
-  - DOMAIN,api-huacloud.net,DIRECT
   - RULE-SET,advertising,⛔阻断  # 拦截广告
   - RULE-SET,privacy,⛔阻断      # 拦截隐私追踪
-  - RULE-SET,googlefcm,OpenAI
+  - RULE-SET,googlefcm,🇺🇸手动选择
   - DOMAIN,cdn.usefathom.com,OpenAI
   - DOMAIN-SUFFIX,anthropic.com,OpenAI
   - DOMAIN-SUFFIX,claude.ai,OpenAI
-  - DOMAIN-SUFFIX,okemby.org,Emby
-  - DOMAIN,cdn.lilyemby.com,DIRECT
-  - DOMAIN,free.lilyemby.com,Emby
-  - DOMAIN,cfstream.lilyya.top,Emby
-  - DOMAIN,tx.lilyemby.com,Emby
-  - DOMAIN,origin.lilyemby.cc,Emby
-  - DOMAIN-SUFFIX,twimg.com,Emby
-  - DOMAIN,aliyun.lilyemby.com,Emby
-  - DOMAIN-SUFFIX,83787.de,Emby
-  - DOMAIN,stream-1.miraiemby.com,Emby
-  - DOMAIN,stream-3.miraiemby.com,DIRECT
-  - DOMAIN,stream-1.jiedaibao.gs,DIRECT
-  - IP-CIDR,154.219.102.206/32,DIRECT
-  - IP-CIDR,103.39.79.254/32,DIRECT
-  - IP-CIDR,43.133.196.53/32,DIRECT
-  - DOMAIN-SUFFIX,younoyes.com,Emby
   - PROCESS-NAME,com.qidian.QDReader,DIRECT
   - DOMAIN-SUFFIX,youpin898.com,DIRECT
   - DOMAIN-SUFFIX,youpinimg.com,DIRECT
   - DOMAIN-SUFFIX,jianguoyun.com,Proxies
   - DOMAIN-SUFFIX,linux.do,OpenAI
   - RULE-SET,lan,DIRECT
-  - PROCESS-NAME,com.honjow.fehviewer,OpenAI
+  - PROCESS-NAME,com.honjow.fehviewer,🇺🇸自动选择
   - IP-CIDR,149.154.160.0/20,Emby
 
   - RULE-SET,steam_cn,DIRECT
@@ -878,12 +862,12 @@ rules:
   - RULE-SET,youtube,YouTube
   - RULE-SET,netflix,Netflix
   - RULE-SET,google,Google
-  - RULE-SET,binance,OpenAI
+  - RULE-SET,binance,🇺🇸自动选择
   - RULE-SET,apple,Apple
   - RULE-SET,microsoft,Microsoft
   - RULE-SET,cloudflare,Cloudflare
-  - RULE-SET,chinadirect,DIRECT
-  - GEOSITE,cn,DIRECT
+  - RULE-SET,cnsite,DIRECT
+  - RULE-SET,cnip,DIRECT,no-resolve
   - GEOIP,CN,DIRECT
   - RULE-SET,telegram,Telegram
   - PROCESS-NAME,com.exteragram.messenger,Telegram
