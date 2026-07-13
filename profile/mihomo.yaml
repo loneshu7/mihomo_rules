@@ -1,4 +1,4 @@
-#Clash.Meta(mihomo)
+# Mihomo (Clash.Meta) advanced rules profile
 ishu: &ishu
     interval: 43200
     health-check:
@@ -9,37 +9,40 @@ ishu: &ishu
         lazy: true
         expected-status: 204
 
-
 # Proxy Providers
+# 将示例 URL 替换为自己的 Clash/mihomo 订阅地址；提交公开仓库前请保留占位文本。
+# additional-prefix 会给不同机场的节点名称增加标识，便于筛选和排障。
 proxy-providers:
   机场1:
-    url: "在此填入第1个机场的订阅链接(Clash/mihomo 格式)"
     type: http
+    url: "在此填入第1个机场的订阅链接"
     <<: *ishu
     path: './proxy_provider/providers_1.yaml'
     proxy: Proxies
     override:
-      additional-prefix: "机场标识"
+      additional-prefix: "机场1-"
     filter: '^(?!.*(?i)(?:NEVER_MATCH)).*$'
 
   机场2:
-    url: "在此填入第2个机场的订阅链接(Clash/mihomo 格式)"
     type: http
+    url: "在此填入第2个机场的订阅链接"
     <<: *ishu
     path: './proxy_provider/providers_2.yaml'
     proxy: Proxies
     override:
-      additional-prefix: "机场标识"
+      additional-prefix: "机场2-"
     filter: '^(?!.*(?i)(?:NEVER_MATCH)).*$'
-    
+
+  # 本地落地节点文件。dialer-proxy 指定其前置中转策略组。
   LandNode:
     type: file
     <<: *ishu
+    path: './proxy_provider/LandNode.yaml'
     override:
       additional-prefix: "🔗"
       dialer-proxy: 中转
-    path: './proxy_provider/LandNode.yaml'
 
+  # 其他不需要前置中转的本地节点文件。
   OtherNode:
     type: file
     <<: *ishu
@@ -83,7 +86,6 @@ profile:
 
 unified-delay: true
 tcp-concurrent: true
-global-client-fingerprint: chrome
 
 geodata-mode: true
 geo-auto-update: false
@@ -95,12 +97,14 @@ geox-url:
   asn: 'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb'
 
 # Tunnel Configuration
+# TUN 接管系统流量；DNS 劫持将 53 端口查询交给 mihomo 内置 DNS。
 tun:
   enable: true
   device: mihomo
   stack: system
   dns-hijack:
     - "any:53"
+    - "tcp://any:53"
   auto-route: true
   auto-detect-interface: true
   mtu: 1500
@@ -111,8 +115,8 @@ tun:
   endpoint-independent-nat: true
   udp-timeout: 300
 
-
 # DNS Configuration
+# fake-ip 模式由 mihomo 返回保留地址并在内部维护域名映射，适合 TUN 全局接管。
 dns:
   enable: true
   listen: "0.0.0.0:1053"
@@ -123,26 +127,39 @@ dns:
   respect-rules: true
   enhanced-mode: "fake-ip"
   fake-ip-range: "198.18.0.1/16"
+
+  # 以下域名保留真实解析结果，避免局域网和系统探测域名被映射为 fake-ip。
   fake-ip-filter:
     - "*.lan"
     - "+.local"
     - "localhost.ptlogin2.qq.com"
     - "geosite:private"
+
+  # 用于解析 DoH 服务器自身的域名，必须填写可直接访问的 IP DNS。
   default-nameserver:
     - "223.5.5.5"
     - "119.29.29.29"
+
+  # 普通域名的主要上游 DNS。
   nameserver:
     - "https://cloudflare-dns.com/dns-query"
     - "https://dns.google/dns-query"
+
+  # 专门解析代理节点的 server 域名，避免节点域名依赖代理链路。
   proxy-server-nameserver:
     - "https://doh.pub/dns-query"
     - "https://dns.alidns.com/dns-query"
+
+  # 国内与私有域名优先交给国内 DNS，减少跨境解析和 CDN 偏差。
   nameserver-policy:
     "geosite:cn,private":
       - "https://doh.pub/dns-query"
       - "https://dns.alidns.com/dns-query"
+    # 企业内网示例；不需要时可删除或改成自己的域名和 DNS。
     "+.internal.crop.com": "10.0.0.1"
+
 # Sniffer Configuration
+# 嗅探 TLS/HTTP/QUIC 连接中的域名，帮助仅有目标 IP 的连接正确命中域名规则。
 sniffer:
   enable: true
   parse-pure-ip: true
@@ -151,7 +168,7 @@ sniffer:
       ports: [443, 8443]
     http:
       ports: [80, 8080-8888]
-      priority: 1
+      override-destination: true
     quic:
       ports: [443, 8443]
   force-domain:
@@ -161,48 +178,50 @@ sniffer:
     - "dlg.io.mi.com"
     - "+.apple.com"
 
-
 # Node Filters
+# 地区正则用于复用自动选择、故障转移、负载均衡和手动策略组。
+# 调整机场节点命名后，请同步检查这些包含/排除关键词。
 FilterHK: &FilterHK 
-  '^(?=.*((?i)(香港|🇭🇰)))(?!.*((?i)(🔗|实验))).*$'
+  '^(?=.*((?i)(香港|🇭🇰)))(?!.*((?i)(🔗))).*$'
 
 FilterJP: &FilterJP 
-  '^(?=.*((?i)(日本|🇯🇵)))(?!.*((?i)(🔗|实验))).*$'
+  '^(?=.*((?i)(日本|🇯🇵)))(?!.*((?i)(🔗))).*$'
 
 FilterKR: &FilterKR 
-  '^(?=.*((?i)(韩国|🇰🇷)))(?!.*((?i)(🔗|实验))).*$'
+  '^(?=.*((?i)(韩国|🇰🇷)))(?!.*((?i)(🔗))).*$'
 
 FilterSG: &FilterSG 
-  '^(?=.*((?i)(新加坡|🇸🇬)))(?!.*((?i)(🔗|实验))).*$'
+  '^(?=.*((?i)(新加坡|🇸🇬)))(?!.*((?i)(🔗))).*$'
 
 FilterUS: &FilterUS 
-  '^(?=.*((?i)(美国|🇺🇸)))(?!.*((?i)(🔗|实验))).*$'
+  '^(?=.*((?i)(美国|🇺🇸)))(?!.*((?i)(🔗))).*$'
 
 FilterUK: &FilterUK 
-  '^(?=.*((?i)(英国|🇬🇧)))(?!.*((?i)(🔗|实验))).*$'
+  '^(?=.*((?i)(英国|🇬🇧)))(?!.*((?i)(🔗))).*$'
 
 FilterAU: &FilterAU 
-  '^(?=.*((?i)(澳大利亚|🇦🇺)))(?!.*((?i)(🔗|实验))).*$'
+  '^(?=.*((?i)(澳大利亚|🇦🇺)))(?!.*((?i)(🔗))).*$'
 
 FilterFR: &FilterFR 
-  '^(?=.*((?i)(法国|🇫🇷)))(?!.*((?i)(🔗|实验))).*$'
+  '^(?=.*((?i)(法国|🇫🇷)))(?!.*((?i)(🔗))).*$'
 
 FilterDE: &FilterDE 
-  '^(?=.*((?i)(德国|🇩🇪)))(?!.*((?i)(🔗|实验))).*$'
+  '^(?=.*((?i)(德国|🇩🇪)))(?!.*((?i)(🔗))).*$'
 
 FilterTW: &FilterTW 
-  '^(?=.*((?i)(台湾|🇹🇼)))(?!.*((?i)(🔗|实验))).*$'
+  '^(?=.*((?i)(台湾|🇹🇼)))(?!.*((?i)(🔗))).*$'
 
 FilterOthers: &FilterOthers 
-  '^(?!.*((?i)(香港|🇭🇰|台湾|🇹🇼|日本|🇯🇵|新加坡|🇸🇬|美国|🇺🇸|德国|🇩🇪|英国|🇬🇧|韩国|🇰🇷|法国|🇫🇷|澳大利亚|🇦🇺)))(?!.*((?i)(🔗|实验))).*$'
+  '^(?!.*((?i)(香港|🇭🇰|台湾|🇹🇼|日本|🇯🇵|新加坡|🇸🇬|美国|🇺🇸|德国|🇩🇪|英国|🇬🇧|韩国|🇰🇷|法国|🇫🇷|澳大利亚|🇦🇺)))(?!.*((?i)(🔗))).*$'
 
 FilterExperiment: &FilterExperiment 
-  '^(?=.*((?i)(实验)))(?!.*((?i)(🔗))).*$'
+  '^(?=.*((?i)()))(?!.*((?i)(🔗))).*$'
 
 FilterAll: &FilterAll 
-  '^(?!.*((?i)(🔗|实验))).*$'
+  '^(?!.*((?i)(🔗))).*$'
 
 # Proxy Group Templates
+# YAML 锚点集中定义公共参数，下面的策略组用 << 合并，减少重复配置。
 Select: &Select
   type: select
   disable-udp: false
@@ -232,15 +251,30 @@ FallBack: &FallBack
   hidden: false
   include-all: true
 
+# consistent-hashing 让相同目标尽量使用同一节点；它负责分摊连接，并不等于自动选择最低延迟。
+LoadBalance: &LoadBalance
+  type: load-balance
+  strategy: consistent-hashing
+  url: 'https://www.gstatic.com/generate_204'
+  expected-status: 204
+  interval: 300
+  timeout: 5000
+  lazy: true
+  disable-udp: false
+  hidden: false
+  use:
+     - A-Kuromis #这里为了瘦斤节点池因为博主本人有多个主用和备用节点机场 负载均衡不会选择最好的机场 需要填写需要加进负载均衡的机场 比如填写proxy-providers内的“机场1”
+
 Select_Proxies: &Select_Proxies
   type: select
   disable-udp: false
   hidden: false
   include-all: true
-  proxies: [Proxies, 🧪实验低倍率, 🔗链式代理, DIRECT, ⛔阻断, 
+  proxies: [Proxies, 🧪实验低倍率, 🔗链式代理, DIRECT, ⛔阻断, 📋自动全部, 
             🟨手动选择, 🟦手动选择, 
             🟢故障转移, 🟣故障转移, 
             🔶自动选择, 🔷自动选择, 
+            🔸负载均衡, 🔹负载均衡, 
             🇭🇰手动选择, 🇸🇬手动选择, 
             🇺🇸手动选择, 🇹🇼手动选择,
             🇯🇵手动选择, 🇰🇷手动选择, 
@@ -256,9 +290,15 @@ Select_Proxies: &Select_Proxies
             🇯🇵故障转移, 🇰🇷故障转移, 
             🇦🇺故障转移, 🇬🇧故障转移, 
             🇫🇷故障转移, 🇩🇪故障转移, 
+            🇭🇰负载均衡, 🇸🇬负载均衡, 
+            🇺🇸负载均衡, 🇹🇼负载均衡, 
+            🇯🇵负载均衡, 🇰🇷负载均衡, 
+            🇦🇺负载均衡, 🇬🇧负载均衡, 
+            🇫🇷负载均衡, 🇩🇪负载均衡, 
             ↩️绕过]
 
 # Proxy Groups
+# 顶层组负责模式选择；地区组负责在对应节点池中自动、回退、均衡或手动选点。
 proxy-groups:
   ### MAIN
   - name: Proxies
@@ -268,6 +308,7 @@ proxy-groups:
               📋手动全部, 🧩手动其他, 
               🟨手动选择, 🟦手动选择, 
               🔶自动选择, 🔷自动选择, 
+              🔸负载均衡, 🔹负载均衡, 
               📋自动全部, 📋回退全部, 
               🧩自动其他, 🧩回退其他, 
               🔗链式代理, DIRECT, ⛔阻断, ↩️绕过]
@@ -297,6 +338,18 @@ proxy-groups:
               🇰🇷自动选择, 🇦🇺自动选择, 🇬🇧自动选择, 🇫🇷自动选择, 🇩🇪自动选择]
     icon: 'https://raw.githubusercontent.com/blackTangerine11/mihomo_rules_profile/master/icon/mei.png'
 
+  - name: 🔸负载均衡
+    type: select
+    proxies: [🇭🇰负载均衡, 🇸🇬负载均衡, 🇺🇸负载均衡, 🇹🇼负载均衡, 🇯🇵负载均衡, 
+              🇰🇷负载均衡, 🇦🇺负载均衡, 🇬🇧负载均衡, 🇫🇷负载均衡, 🇩🇪负载均衡]
+    icon: 'https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Round_Robin.png'
+
+  - name: 🔹负载均衡
+    type: select
+    proxies: [🇭🇰负载均衡, 🇸🇬负载均衡, 🇺🇸负载均衡, 🇹🇼负载均衡, 🇯🇵负载均衡, 
+              🇰🇷负载均衡, 🇦🇺负载均衡, 🇬🇧负载均衡, 🇫🇷负载均衡, 🇩🇪负载均衡]
+    icon: 'https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Round_Robin_1.png'
+
   - name: 🟨手动选择
     type: select
     proxies: [🇭🇰手动选择, 🇸🇬手动选择, 🇺🇸手动选择, 🇹🇼手动选择, 🇯🇵手动选择, 
@@ -319,10 +372,20 @@ proxy-groups:
     filter: *FilterAll
     icon: 'https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Available.png'
 
-  ### Dialer Proxy 
+  ### Dialer Proxy
   - name: 中转
-    <<: *Select
-    filter: *FilterAll
+    type: select
+    disable-udp: false
+    hidden: false
+    proxies:
+      - 🔶自动选择
+      - 🔷自动选择
+      - 🟨手动选择
+      - 🟦手动选择
+      - 🟢故障转移
+      - 🟣故障转移
+      - 🔸负载均衡
+      - 🔹负载均衡
     icon: 'https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Server.png'
 
   - name: 落地
@@ -331,11 +394,11 @@ proxy-groups:
     filter: '^(?=.*(🔗)).*$'
 
   ### Services
-  - name: Pornhub
+  - name: Instagram 
     <<: *Select_Proxies
     filter: *FilterAll
-    icon: 'https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Pornhub_2.png'
-    
+    icon: 'https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Instagram_2.png'
+  
   - name: Bilibili
     <<: *Select_Proxies
     filter: *FilterAll
@@ -581,6 +644,47 @@ proxy-groups:
     <<: *Auto
     filter: *FilterAll
 
+  ### LoadBalance
+  - name: 🇭🇰负载均衡
+    <<: *LoadBalance
+    filter: *FilterHK
+
+  - name: 🇸🇬负载均衡
+    <<: *LoadBalance
+    filter: *FilterSG
+
+  - name: 🇺🇸负载均衡
+    <<: *LoadBalance
+    filter: *FilterUS
+
+  - name: 🇹🇼负载均衡
+    <<: *LoadBalance
+    filter: *FilterTW
+
+  - name: 🇯🇵负载均衡
+    <<: *LoadBalance
+    filter: *FilterJP
+
+  - name: 🇰🇷负载均衡
+    <<: *LoadBalance
+    filter: *FilterKR
+
+  - name: 🇦🇺负载均衡
+    <<: *LoadBalance
+    filter: *FilterAU
+
+  - name: 🇬🇧负载均衡
+    <<: *LoadBalance
+    filter: *FilterUK
+
+  - name: 🇫🇷负载均衡
+    <<: *LoadBalance
+    filter: *FilterFR
+
+  - name: 🇩🇪负载均衡
+    <<: *LoadBalance
+    filter: *FilterDE
+
   ### Hidden
   - name: ↩️绕过
     type: select
@@ -599,16 +703,17 @@ proxy-groups:
       - 落地
 
 # Rule Providers
+# MRS 是 mihomo 的二进制规则格式；规则文件按 interval 自动更新并缓存在 path。
 rule-providers:
   # LAN
   lan:
     type: http
-    behavior: classical
+    behavior: domain
+    format: mrs
     interval: 43200
     proxy: Proxies
-    url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/Lan/Lan.yaml'
-    path: './rule_set/lan.yaml'
-
+    url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/private.mrs'
+    path: './rule_set/lan.mrs'
   # ChinaDIRECT
   cnsite:
     type: http
@@ -628,191 +733,229 @@ rule-providers:
     url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/cn.mrs'
     path: './rule_set/cnip.mrs'
   
+  # IP Rules
+  lanip:
+    type: http
+    behavior: ipcidr
+    format: mrs
+    interval: 43200
+    proxy: Proxies
+    url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/private.mrs'
+    path: './rule_set/lanip.mrs'
+
+  googleip:
+    type: http
+    behavior: ipcidr
+    format: mrs
+    interval: 43200
+    proxy: Proxies
+    url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/google.mrs'
+    path: './rule_set/googleip.mrs'
+
+  telegramip:
+    type: http
+    behavior: ipcidr
+    format: mrs
+    interval: 43200
+    proxy: Proxies
+    url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/telegram.mrs'
+    path: './rule_set/telegramip.mrs'
+
+  twitterip:
+    type: http
+    behavior: ipcidr
+    format: mrs
+    interval: 43200
+    proxy: Proxies
+    url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/twitter.mrs'
+    path: './rule_set/twitterip.mrs'
+
+  netflixip:
+    type: http
+    behavior: ipcidr
+    format: mrs
+    interval: 43200
+    proxy: Proxies
+    url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/netflix.mrs'
+    path: './rule_set/netflixip.mrs'
+
   # Other
   gemini:
     type: http
-    behavior: classical
+    behavior: domain
+    format: mrs
     interval: 43200
     proxy: Proxies
-    url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/Gemini/Gemini.yaml'
-    path: './rule_set/gemini.yaml'
-    
+    url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/google-gemini.mrs'
+    path: './rule_set/gemini.mrs'
   googlefcm:
     type: http
-    behavior: classical
+    behavior: domain
+    format: mrs
     interval: 43200
     proxy: Proxies
-    url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/GoogleFCM/GoogleFCM.yaml'
-    path: './rule_set/googlefcm.yaml'
-    
+    url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/googlefcm.mrs'
+    path: './rule_set/googlefcm.mrs'
+  instagram:
+    type: http
+    behavior: domain
+    format: mrs
+    interval: 43200
+    proxy: Proxies
+    url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/instagram.mrs'
+    path: './rule_set/instagram.mrs'
   bilibili:
     type: http
-    behavior: classical
+    behavior: domain
+    format: mrs
     interval: 43200
     proxy: Proxies
-    url: 'https://github.com/blackmatrix7/ios_rule_script/raw/refs/heads/master/rule/Clash/BiliBili/BiliBili.yaml'
-    path: './rule_set/bilibili.yaml'
-
+    url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/bilibili.mrs'
+    path: './rule_set/bilibili.mrs'
   pikpak:
     type: http
-    behavior: classical
+    behavior: domain
+    format: mrs
     interval: 43200
     proxy: Proxies
-    url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/PikPak/PikPak.yaml'
-    path: './rule_set/pikpak.yaml'
-
-  stream:
-    type: http
-    behavior: classical
-    interval: 43200
-    proxy: Proxies
-    url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/GlobalMedia/GlobalMedia.yaml'
-    path: './rule_set/stream.yaml'
-
+    url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/pikpak.mrs'
+    path: './rule_set/pikpak.mrs'
   telegram:
     type: http
-    behavior: classical
+    behavior: domain
+    format: mrs
     interval: 43200
     proxy: Proxies
-    url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/Telegram/Telegram.yaml'
-    path: './rule_set/telegram.yaml'
-
+    url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/telegram.mrs'
+    path: './rule_set/telegram.mrs'
   apple:
     type: http
-    behavior: classical
+    behavior: domain
+    format: mrs
     interval: 43200
     proxy: Proxies
-    url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/Apple/Apple.yaml'
-    path: './rule_set/apple.yaml'
-
+    url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/apple.mrs'
+    path: './rule_set/apple.mrs'
   microsoft:
     type: http
-    behavior: classical
+    behavior: domain
+    format: mrs
     interval: 43200
     proxy: Proxies
-    url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/Microsoft/Microsoft.yaml'
-    path: './rule_set/microsoft.yaml'
-
+    url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/microsoft.mrs'
+    path: './rule_set/microsoft.mrs'
   steam:
     type: http
-    behavior: classical
+    behavior: domain
+    format: mrs
     interval: 43200
     proxy: Proxies
-    url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/Steam/Steam.yaml'
-    path: './rule_set/steam.yaml'
-
+    url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/steam.mrs'
+    path: './rule_set/steam.mrs'
   steam_cn:
     type: http
-    behavior: classical
+    behavior: domain
+    format: mrs
     interval: 43200
     proxy: Proxies
-    url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/SteamCN/SteamCN.yaml'
-    path: './rule_set/steam_cn.yaml'
-
+    url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/steam@cn.mrs'
+    path: './rule_set/steam_cn.mrs'
   discord:
     type: http
-    behavior: classical
+    behavior: domain
+    format: mrs
     interval: 43200
     proxy: Proxies
-    url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/Discord/Discord.yaml'
-    path: './rule_set/discord.yaml'
-
+    url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/discord.mrs'
+    path: './rule_set/discord.mrs'
   spotify:
     type: http
-    behavior: classical
+    behavior: domain
+    format: mrs
     interval: 43200
     proxy: Proxies
-    url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/Spotify/Spotify.yaml'
-    path: './rule_set/spotify.yaml'
-
+    url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/spotify.mrs'
+    path: './rule_set/spotify.mrs'
   tiktok:
     type: http
-    behavior: classical
+    behavior: domain
+    format: mrs
     interval: 43200
     proxy: Proxies
-    url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/TikTok/TikTok.yaml'
-    path: './rule_set/tiktok.yaml'
-
+    url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/tiktok.mrs'
+    path: './rule_set/tiktok.mrs'
   openai:
     type: http
-    behavior: classical
+    behavior: domain
+    format: mrs
     interval: 43200
     proxy: Proxies
-    url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/OpenAI/OpenAI.yaml'
-    path: './rule_set/openai.yaml'
-
+    url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/openai.mrs'
+    path: './rule_set/openai.mrs'
   epic:
     type: http
-    behavior: classical
+    behavior: domain
+    format: mrs
     interval: 43200
     proxy: Proxies
-    url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/Epic/Epic.yaml'
-    path: './rule_set/epic.yaml'
-
+    url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/epicgames.mrs'
+    path: './rule_set/epic.mrs'
   google:
     type: http
-    behavior: classical
+    behavior: domain
+    format: mrs
     interval: 43200
     proxy: Proxies
-    url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/Google/Google.yaml'
-    path: './rule_set/google.yaml'
-
+    url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/google.mrs'
+    path: './rule_set/google.mrs'
   github:
     type: http
-    behavior: classical
+    behavior: domain
+    format: mrs
     interval: 43200
     proxy: Proxies
-    url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/GitHub/GitHub.yaml'
-    path: './rule_set/github.yaml'
-
+    url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/github.mrs'
+    path: './rule_set/github.mrs'
   youtube:
     type: http
-    behavior: classical
+    behavior: domain
+    format: mrs
     interval: 43200
     proxy: Proxies
-    url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/YouTube/YouTube.yaml'
-    path: './rule_set/youtube.yaml'
-
+    url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/youtube.mrs'
+    path: './rule_set/youtube.mrs'
   twitter:
     type: http
-    behavior: classical
+    behavior: domain
+    format: mrs
     interval: 43200
     proxy: Proxies
-    url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/Twitter/Twitter.yaml'
-    path: './rule_set/twitter.yaml'
-
-  pornhub:
-    type: http
-    behavior: classical
-    interval: 43200
-    proxy: Proxies
-    url: 'https://raw.githubusercontent.com/dler-io/Rules/refs/heads/main/Egern/Provider/Media/Pornhub.yaml'
-    path: './rule_set/pornhub.yaml'
-
+    url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/twitter.mrs'
+    path: './rule_set/twitter.mrs'
   cloudflare:
     type: http
-    behavior: classical
+    behavior: domain
+    format: mrs
     interval: 43200
     proxy: Proxies
-    url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/Cloudflare/Cloudflare.yaml'
-    path: './rule_set/cloudflare.yaml'
-
+    url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/cloudflare.mrs'
+    path: './rule_set/cloudflare.mrs'
   netflix:
     type: http
-    behavior: classical
+    behavior: domain
+    format: mrs
     interval: 43200
     proxy: Proxies
-    url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/Netflix/Netflix.yaml'
-    path: './rule_set/netflix.yaml'
-    
+    url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/netflix.mrs'
+    path: './rule_set/netflix.mrs'
   advertising:
     type: http
-    behavior: classical
+    behavior: domain
+    format: mrs
     interval: 43200
     proxy: Proxies
-    url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/Advertising/Advertising.yaml'
-    path: './rule_set/advertising.yaml'
-
+    url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/category-ads-all.mrs'
+    path: './rule_set/advertising.mrs'
   privacy:
     type: http
     behavior: classical
@@ -823,13 +966,15 @@ rule-providers:
 
   binance:
     type: http
-    behavior: classical
+    behavior: domain
+    format: mrs
     interval: 43200
     proxy: Proxies
-    url: 'https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Clash/Binance/Binance.yaml'
-    path: './rule_set/binance.yaml'
+    url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/binance.mrs'
+    path: './rule_set/binance.mrs'
 
 # Rules
+# 规则按从上到下的顺序匹配，MATCH 必须保留在最后作为兜底。
 rules:
   - RULE-SET,advertising,⛔阻断  # 拦截广告
   - RULE-SET,privacy,⛔阻断      # 拦截隐私追踪
@@ -837,32 +982,48 @@ rules:
   - DOMAIN,cdn.usefathom.com,OpenAI
   - DOMAIN-SUFFIX,anthropic.com,OpenAI
   - DOMAIN-SUFFIX,claude.ai,OpenAI
+  - DOMAIN,anthropic.auth0.com,OpenAI
+  - DOMAIN,anthropic-com.ghost.io,OpenAI
+  - DOMAIN,anthropic.com.cdn.cloudflare.net,OpenAI
+  - DOMAIN,browser-intake-us5-datadoghq.com,OpenAI
+  - DOMAIN,servd-anthropic-website.b-cdn.net,OpenAI
+  - DOMAIN-SUFFIX,claude.com,OpenAI
+  - DOMAIN-SUFFIX,clau.de,OpenAI
+  - DOMAIN-SUFFIX,claudemcpclient.com,OpenAI
+  - DOMAIN-SUFFIX,claudeusercontent.com,OpenAI
+  - DOMAIN-SUFFIX,twimg.com,Emby
+  - DOMAIN,stream-1.jiedaibao.gs,DIRECT
+  - IP-CIDR,154.219.102.206/32,DIRECT
+  - IP-CIDR,43.133.196.53/32,DIRECT
   - PROCESS-NAME,com.qidian.QDReader,DIRECT
   - DOMAIN-SUFFIX,youpin898.com,DIRECT
   - DOMAIN-SUFFIX,youpinimg.com,DIRECT
-  - DOMAIN-SUFFIX,jianguoyun.com,Proxies
   - DOMAIN-SUFFIX,linux.do,OpenAI
   - RULE-SET,lan,DIRECT
-  - PROCESS-NAME,com.honjow.fehviewer,🇺🇸自动选择
+  - RULE-SET,lanip,DIRECT,no-resolve
   - IP-CIDR,149.154.160.0/20,Emby
+  - DOMAIN-SUFFIX,synergypeak.org,DIRECT
 
   - RULE-SET,steam_cn,DIRECT
   - RULE-SET,steam,Steam
   - RULE-SET,epic,Epic
   - RULE-SET,twitter,Twitter
+  - RULE-SET,twitterip,Twitter,no-resolve
+  - RULE-SET,instagram,Instagram 
   - RULE-SET,spotify,Spotify
   - RULE-SET,github,GitHub
   - RULE-SET,pikpak,Pikpak
   - RULE-SET,discord,Discord
   - RULE-SET,tiktok,Tiktok
-  - RULE-SET,pornhub,Pornhub
   - RULE-SET,gemini,OpenAI
   - RULE-SET,openai,OpenAI
   - RULE-SET,bilibili,Bilibili
   - RULE-SET,youtube,YouTube
   - RULE-SET,netflix,Netflix
+  - RULE-SET,netflixip,Netflix,no-resolve
   - RULE-SET,google,Google
-  - RULE-SET,binance,🇺🇸自动选择
+  - RULE-SET,googleip,Google,no-resolve
+  - RULE-SET,binance,OpenAI
   - RULE-SET,apple,Apple
   - RULE-SET,microsoft,Microsoft
   - RULE-SET,cloudflare,Cloudflare
@@ -870,6 +1031,8 @@ rules:
   - RULE-SET,cnip,DIRECT,no-resolve
   - GEOIP,CN,DIRECT
   - RULE-SET,telegram,Telegram
+  - RULE-SET,telegramip,Telegram,no-resolve
   - PROCESS-NAME,com.exteragram.messenger,Telegram
   - PROCESS-NAME,com.radolyn.ayugram,Telegram
+  - PROCESS-NAME,net.thunderbird.android,Proxies
   - MATCH,Proxies
