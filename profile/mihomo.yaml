@@ -392,6 +392,7 @@ proxy-groups:
     <<: *Select
     icon: 'https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Airport.png'
     filter: '^(?=.*(🔗)).*$'
+    empty-fallback: REJECT
 
   ### Services
   - name: Instagram 
